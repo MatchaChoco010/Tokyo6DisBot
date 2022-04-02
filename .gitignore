@@ -387,7 +387,7 @@ test-results/
 .LSOverride
 
 # Icon must end with two \r
-Icon
+# Icon
 
 
 # Thumbnails
@@ -447,4 +447,4 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-token.txt
+*-token.txt

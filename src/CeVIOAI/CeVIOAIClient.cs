@@ -1,15 +1,13 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Discord.Audio;
-using NAudio.Wave;
 using NMeCab.Specialized;
 
-public class KoharuRikka
+public sealed class CeVIOAIClient : IDisposable
 {
-    const string CastName = "小春六花";
     readonly SemaphoreSlim _semaphore = new(1, 1);
 
     readonly Type _serviceControl2Type;
@@ -18,17 +16,7 @@ public class KoharuRikka
 
     CancellationTokenSource? _nowSpeakingTaskCancellationTokenSource;
 
-    static string WavDirectoryPath
-    {
-        get
-        {
-            var exePath = Assembly.GetEntryAssembly()?.Location ?? "";
-            var wavDirectoryPath = Path.Combine(Path.GetDirectoryName(exePath) ?? "", "audio");
-            return wavDirectoryPath;
-        }
-    }
-
-    public KoharuRikka()
+    public CeVIOAIClient()
     {
         var cevioAiPath = Environment.ExpandEnvironmentVariables("%ProgramW6432%") +
             @"\CeVIO\CeVIO AI\CeVIO.Talk.RemoteService2.dll";
@@ -45,24 +33,25 @@ public class KoharuRikka
         var avilableCastsProp =
             talkerAgent2Type.GetProperty("AvailableCasts", BindingFlags.Static | BindingFlags.Public)!;
         dynamic availableCasts = avilableCastsProp.GetValue(null, null)!;
-        if (!Array.Exists(availableCasts, (Predicate<string>)(cast => cast == CastName)))
-        {
-            throw new Exception("Cast not found.");
-        }
 
         var talker2Type = asm.GetType("CeVIO.Talk.RemoteService2.Talker2")!;
         var talker2Constructor = talker2Type.GetConstructor(new[] { typeof(string) })!;
-        _talker = talker2Constructor.Invoke(new object[] { CastName });
+        _talker = talker2Constructor.Invoke(new object?[] { "" });
 
         _tagger = MeCabIpaDicTagger.Create();
 
         Directory.CreateDirectory(WavDirectoryPath);
     }
 
-    /// <summary>
-    /// ボリューム  1.0f = 100%
-    /// </summary>
-    public float GlobalVolume { get; set; } = 1.0f;
+    static string WavDirectoryPath
+    {
+        get
+        {
+            var exePath = Assembly.GetEntryAssembly()?.Location ?? "";
+            var wavDirectoryPath = Path.Combine(Path.GetDirectoryName(exePath) ?? "", "audio");
+            return wavDirectoryPath;
+        }
+    }
 
     /// <summary>
     ///     声量 0~100
@@ -109,51 +98,6 @@ public class KoharuRikka
         set => _talker.ToneScale = value;
     }
 
-    /// <summary>
-    ///     嬉しい 0~100
-    /// </summary>
-    public uint ComponentHappy
-    {
-        get => _talker.Components[0].Value;
-        set => _talker.Components[0].Value = value;
-    }
-
-    /// <summary>
-    ///     普通 0~100
-    /// </summary>
-    public uint ComponentNormal
-    {
-        get => _talker.Components[1].Value;
-        set => _talker.Components[1].Value = value;
-    }
-
-    /// <summary>
-    ///     怒り 0~100
-    /// </summary>
-    public uint ComponentAnger
-    {
-        get => _talker.Components[2].Value;
-        set => _talker.Components[2].Value = value;
-    }
-
-    /// <summary>
-    ///     哀しみ 0~100
-    /// </summary>
-    public uint ComponentSorrow
-    {
-        get => _talker.Components[3].Value;
-        set => _talker.Components[3].Value = value;
-    }
-
-    /// <summary>
-    ///     落ち着き 0~100
-    /// </summary>
-    public uint ComponentCalmness
-    {
-        get => _talker.Components[4].Value;
-        set => _talker.Components[4].Value = value;
-    }
-
     public void Dispose()
     {
         var closeHostMethod =
@@ -163,34 +107,32 @@ public class KoharuRikka
         _semaphore.Dispose();
     }
 
-    async Task RawSpeak(string text, AudioOutStream audioOutStream, CancellationToken cancellationToken)
+    /// <summary>
+    ///     index 0: 嬉しい 0~100
+    ///     index 1: 普通 0~100
+    ///     index 2: 怒り 0~100
+    ///     index 3: 悲しみ 0~100
+    ///     index 4: 落ち着き 0~100
+    /// </summary>
+    public uint GetComponent(int index)
     {
-        var wavFileName = $"{Guid.NewGuid()}.wav";
-        var wavFilePath = Path.Combine(WavDirectoryPath, wavFileName);
-
-        try
-        {
-            var result = _talker.OutputWaveToFile(text, wavFilePath);
-            if (!result)
-            {
-                return;
-            }
-
-            using var reader = new WaveFileReader(wavFilePath);
-            using var waveStream = WaveFormatConversionStream.CreatePcmStream(reader);
-            using var waveFormatConversionSteam =
-                new WaveFormatConversionStream(new WaveFormat(48000, 16, 2), waveStream);
-
-            try { await waveFormatConversionSteam.CopyToAsync(audioOutStream); }
-            finally { await audioOutStream.FlushAsync(cancellationToken); }
-        }
-        finally
-        {
-            File.Delete(wavFilePath);
-        }
+        return _talker.Components[index].Value;
     }
 
-    public async Task Speak(string text, AudioOutStream audioOutStream, CancellationToken cancellationToken = new())
+    /// <summary>
+    ///     index 0: 嬉しい 0~100
+    ///     index 1: 普通 0~100
+    ///     index 2: 怒り 0~100
+    ///     index 3: 悲しみ 0~100
+    ///     index 4: 落ち着き 0~100
+    /// </summary>
+    public void SetComponent(int index, uint value)
+    {
+        _talker.Components[index].Value = value;
+    }
+
+    public async Task<string[]> OutputWavFiles(string castName, string text,
+        CancellationToken cancellationToken = new())
     {
         // マルチスレッドでCeVIO AIが死ぬので、内部でCeVIO AIのAPIを叩くのは同時に1スレッドまでに制限している。
         // 発話中に次の発話リクエストが来た場合はキャンセルを飛ばしてから次の発話を実行している。
@@ -199,10 +141,13 @@ public class KoharuRikka
         _nowSpeakingTaskCancellationTokenSource =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var token = _nowSpeakingTaskCancellationTokenSource.Token;
+        var pathList = new List<string>();
 
         try
         {
             await _semaphore.WaitAsync(token);
+
+            _talker.Cast = castName;
 
             foreach (var line in text.Split('\n'))
             {
@@ -210,20 +155,40 @@ public class KoharuRikka
                 var speakingText = "";
                 foreach (var node in nodes)
                 {
-                    // CeVIO AI Talkは100文字以上連続して読み上げできない
+                    // CeVIO AI Talkは100文字以上連続して読み上げできないので適当な文節で区切る
                     if (speakingText.Length + node.Surface.Length >= 100)
                     {
-                        await RawSpeak(speakingText, audioOutStream, token);
+                        var wavFileName = $"{Guid.NewGuid()}.wav";
+                        var wavFilePath = Path.Combine(WavDirectoryPath, wavFileName);
+                        var result = _talker.OutputWaveToFile(text, wavFilePath);
+                        if (!result)
+                        {
+                            return pathList.ToArray();
+                        }
+                        else
+                        {
+                            pathList.Add(wavFilePath);
+                        }
+
                         speakingText = "";
                     }
 
                     speakingText += node.Surface;
                 }
 
-                await RawSpeak(speakingText, audioOutStream, token);
-
-                // 行の終わりで一区切り
-                await Task.Delay(500, token);
+                {
+                    var wavFileName = $"{Guid.NewGuid()}.wav";
+                    var wavFilePath = Path.Combine(WavDirectoryPath, wavFileName);
+                    var result = _talker.OutputWaveToFile(text, wavFilePath);
+                    if (!result)
+                    {
+                        return pathList.ToArray();
+                    }
+                    else
+                    {
+                        pathList.Add(wavFilePath);
+                    }
+                }
             }
         }
         finally
@@ -232,5 +197,7 @@ public class KoharuRikka
         }
 
         _nowSpeakingTaskCancellationTokenSource = null;
+
+        return pathList.ToArray();
     }
 }

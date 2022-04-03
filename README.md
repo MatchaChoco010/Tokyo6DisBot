@@ -12,7 +12,7 @@ DiscordでCeVIO AI小樽組によるテキスト読み上げを行うbotプロ�
 
 まずはBotを作成します。
 
-DiscordのDeveloper Portal(https://discord.com/developers/applications)にアクセスし、「New Application」を選択します。
+DiscordのDeveloper Portal([https://discord.com/developers/applications](https://discord.com/developers/applications))にアクセスし、「New Application」を選択します。
 
 ![screenshot](screenshot/screenshot-0.png)
 
@@ -58,7 +58,7 @@ SCOPESを「bot」として、BOT PERMISSIONSに「Send Messages」「Connect」
 
 Tokenを「Copy」します。
 
-![screenshot](screenshot/screenshot-12.png)
+![screenshot](screenshot/screenshot-13.png)
 
 「karin-token.txt」というファイルをREADME.mdと同じディレクトリに作成し、Tokenの内容をペーストします。
 
@@ -89,3 +89,5 @@ rikka-chan help
 ```
 karin-senpai help
 ```
+
+プログラムを終了する際はESCキーを押してください。

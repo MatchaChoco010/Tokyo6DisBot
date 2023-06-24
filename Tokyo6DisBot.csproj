@@ -11,15 +11,15 @@
 
 
   <ItemGroup>
-    <Item Include="*.cs"/>
+    <Item Include="*.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LibNMeCab.IpaDicBin" Version="0.10.0"/>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0"/>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0"/>
-    <PackageReference Include="NAudio" Version="2.0.0"/>
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4"/>
-    <PackageReference Include="Discord.Net" Version="3.4.1"/>
+    <PackageReference Include="LibNMeCab.IpaDicBin" Version="0.10.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="NAudio" Version="2.0.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <PackageReference Include="Discord.Net" Version="3.10.0" />
   </ItemGroup>
 </Project>

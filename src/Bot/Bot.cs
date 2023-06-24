@@ -16,7 +16,11 @@ public sealed class Bot
 
     readonly DiscordSocketClient _client = new(new DiscordSocketConfig
     {
-        GatewayIntents = GatewayIntents.GuildMessages | GatewayIntents.Guilds | GatewayIntents.GuildVoiceStates
+        GatewayIntents = 
+            GatewayIntents.GuildMessages | 
+            GatewayIntents.Guilds | 
+            GatewayIntents.GuildVoiceStates | 
+            GatewayIntents.MessageContent
     });
 
     readonly CommandService _commands = new();

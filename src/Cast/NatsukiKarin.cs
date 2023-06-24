@@ -52,7 +52,7 @@ public class NatsukiKarin : ICast
                 },
                 new EmbedFieldBuilder
                 {
-                    Name = "karin-senpai yogurt", Value = "夏色花梨先輩がデザートを手に入れます", IsInline = false
+                    Name = "karin-senpai dessert", Value = "夏色花梨先輩がデザートを手に入れます", IsInline = false
                 },
                 new EmbedFieldBuilder
                 {
@@ -186,7 +186,9 @@ public class NatsukiKarin : ICast
 
         var embed = new EmbedBuilder
         {
-            Title = "デザートちゃれんじ", Description = GetMessage(), Color = new Color(169, 105, 117)
+            Title = "デザートちゃれんじ",
+            Description = GetMessage(),
+            Color = new Color(169, 105, 117)
         };
 
         return embed.Build();

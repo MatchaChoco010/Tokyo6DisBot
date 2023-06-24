@@ -64,18 +64,30 @@ Tokenを「Copy」します。
 
 同様にして、Botをもう一つ作成し「rikka-token.txt」というファイルも作成します。
 
+#### 2023/06/24 追記
+
+Discord BotにPrivileged Gateway Intentsというのが導入されたため追加でチェックボックスをオンにする必要があります。
+Botの設定から「Privileged Gateway Intents」の項目の3種全てをオンにして保存します。
+
+![screenshot](screenshot/screenshot-14.png)
+
 ### .NETをインストールする
 
 .NETがインストールされていない場合、.NET Runtimeを次のページからダウンロードし、インストールします。
 
 https://dotnet.microsoft.com/ja-jp/download
 
+### libsodiumとopusをダウンロードする
+
+[こちら](https://github.com/discord-net/Discord.Net/tree/dev/voice-natives)からzipをダウンロードし、展開して手に入るlibsodiumとlibopusをcsprojと同じディレクトリに配置する。
+libopus.dllをopus.dllへと名前を変更する。
+
 ### Botを起動する
 
 README.mdと同じディレクトリで次のコマンドを実行します。
 
 ```
-$ dotnet run
+$ dotnet run --release
 ```
 
 プログラムが起動し、CeVIO AIが起動してBotがアクティブになります。
